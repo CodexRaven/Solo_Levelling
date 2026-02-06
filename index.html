@@ -20,7 +20,8 @@
         <div class="stats-grid">
             <div class="stat-row">
                 <span class="label">NAME:</span>
-                <span class="value">SUNG JIN-WOO</span> </div>
+                <span class="value">SUNG JIN-WOO</span>
+            </div>
             <div class="stat-row">
                 <span class="label">LEVEL:</span>
                 <span class="value" id="level-val">1</span>
@@ -51,24 +52,140 @@
             </div>
         </div>
 
+        <div class="divider"></div>
+
+        <div class="header">
+            <h1>DAILY QUEST</h1>
+            <span class="rank" style="color:red">PENALTY ZONE</span>
+        </div>
+
+        <div class="quest-container">
+            <div class="quest-item">
+                <span>PUSH-UPS</span>
+                <div class="progress-box">
+                    <span id="pushups-count">0</span> / 100
+                    <button class="add-btn" onclick="updateQuest('pushups', 10)">+10</button>
+                </div>
+            </div>
+            
+            <div class="quest-item">
+                <span>SIT-UPS</span>
+                <div class="progress-box">
+                    <span id="situps-count">0</span> / 100
+                    <button class="add-btn" onclick="updateQuest('situps', 10)">+10</button>
+                </div>
+            </div>
+
+            <div class="quest-item">
+                <span>SQUATS</span>
+                <div class="progress-box">
+                    <span id="squats-count">0</span> / 100
+                    <button class="add-btn" onclick="updateQuest('squats', 10)">+10</button>
+                </div>
+            </div>
+
+            <div class="quest-item">
+                <span>RUNNING (KM)</span>
+                <div class="progress-box">
+                    <span id="run-count">0</span> / 10
+                    <button class="add-btn" onclick="updateQuest('run', 1)">+1</button>
+                </div>
+            </div>
+        </div>
+
         <div class="notification" id="alert-box">
             [ QUEST COMPLETE ]
         </div>
     </div>
 
-    <script>
-        // Simple Logic for now (Later we connect this to Database)
-        function levelUp(stat) {
-            const element = document.getElementById(stat + '-val');
-            let currentVal = parseInt(element.innerText);
-            element.innerText = currentVal + 1;
+    <script type="module">
+        // 1. Import Firebase Functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // 2. CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrgsTDxEfFU9UBqj2ua3JAI8pzdgTVz2U####",
+            authDomain: "sololevelingsystem-b2712.firebaseapp.com",
+            databaseURL: "https://sololevelingsystem-b2712-default-rtdb.firebaseio.com", 
+            projectId: "sololevelingsystem-b2712",
+            storageBucket: "sololevelingsystem-b2712.firebasestorage.app",
+            messagingSenderId: "128628540730",
+            appId: "1:128628540730:web:eede6b7b8afc9b00d1fc03"
+        };
+
+        // 3. Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // 4. Database References
+        const statsRef = ref(db, 'hunters/jin_woo/stats');
+        const questRef = ref(db, 'hunters/jin_woo/daily_quest');
+
+        // 5. LISTEN: Stats Changes (Realtime)
+        onValue(statsRef, (snapshot) => {
+            const data = snapshot.val();
             
-            // Play sound effect here later
-            triggerAlert();
+            if (data) {
+                document.getElementById('str-val').innerText = data.strength;
+                document.getElementById('agi-val').innerText = data.agility;
+                document.getElementById('int-val').innerText = data.intellect;
+                document.getElementById('level-val').innerText = data.level;
+            } else {
+                set(statsRef, { strength: 10, agility: 10, intellect: 10, level: 1 });
+            }
+        });
+
+        // 6. LISTEN: Quest Changes (Realtime)
+        onValue(questRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('pushups-count').innerText = data.pushups;
+                document.getElementById('situps-count').innerText = data.situps;
+                document.getElementById('squats-count').innerText = data.squats;
+                document.getElementById('run-count').innerText = data.run;
+                
+                // Check if all are done
+                if (data.pushups >= 100 && data.situps >= 100 && data.squats >= 100 && data.run >= 10) {
+                    triggerAlert("QUEST COMPLETE");
+                }
+            } else {
+                set(questRef, { pushups: 0, situps: 0, squats: 0, run: 0 });
+            }
+        });
+
+        // 7. FUNCTION: Update Quest Progress
+        window.updateQuest = function(type, amount) {
+            const element = document.getElementById(type + '-count');
+            let currentVal = parseInt(element.innerText);
+            let target = (type === 'run') ? 10 : 100;
+
+            if (currentVal >= target) return; 
+
+            const updates = {};
+            updates[type] = currentVal + amount;
+            update(questRef, updates);
         }
 
-        function triggerAlert() {
+        // 8. FUNCTION: Level Up Stats
+        window.levelUp = function(statName) {
+            const element = document.getElementById(statName + '-val');
+            let currentVal = parseInt(element.innerText);
+            
+            const updates = {};
+            let dbKey = statName; 
+            if(statName === 'str') dbKey = 'strength';
+            if(statName === 'agi') dbKey = 'agility';
+            if(statName === 'int') dbKey = 'intellect';
+
+            updates[dbKey] = currentVal + 1;
+            update(statsRef, updates);
+            triggerAlert("STAT INCREASED");
+        }
+
+        function triggerAlert(msg) {
             const alertBox = document.getElementById('alert-box');
+            if(msg) alertBox.innerText = "[ " + msg + " ]";
             alertBox.style.opacity = '1';
             setTimeout(() => {
                 alertBox.style.opacity = '0';
