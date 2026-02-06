@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM > STATUS</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="system-container">
+        <div class="header">
+            <h1>STATUS</h1>
+            <span class="rank">JOB: NONE</span>
+        </div>
+        
+        <div class="divider"></div>
+
+        <div class="stats-grid">
+            <div class="stat-row">
+                <span class="label">NAME:</span>
+                <span class="value">SUNG JIN-WOO</span> </div>
+            <div class="stat-row">
+                <span class="label">LEVEL:</span>
+                <span class="value" id="level-val">1</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">FATIGUE:</span>
+                <span class="value">0</span>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="attributes">
+            <div class="stat-control">
+                <span class="stat-name">STRENGTH</span>
+                <span class="stat-num" id="str-val">10</span>
+                <button onclick="levelUp('str')">+</button>
+            </div>
+            <div class="stat-control">
+                <span class="stat-name">AGILITY</span>
+                <span class="stat-num" id="agi-val">10</span>
+                <button onclick="levelUp('agi')">+</button>
+            </div>
+            <div class="stat-control">
+                <span class="stat-name">INTELLECT</span>
+                <span class="stat-num" id="int-val">10</span>
+                <button onclick="levelUp('int')">+</button>
+            </div>
+        </div>
+
+        <div class="notification" id="alert-box">
+            [ QUEST COMPLETE ]
+        </div>
+    </div>
+
+    <script>
+        // Simple Logic for now (Later we connect this to Database)
+        function levelUp(stat) {
+            const element = document.getElementById(stat + '-val');
+            let currentVal = parseInt(element.innerText);
+            element.innerText = currentVal + 1;
+            
+            // Play sound effect here later
+            triggerAlert();
+        }
+
+        function triggerAlert() {
+            const alertBox = document.getElementById('alert-box');
+            alertBox.style.opacity = '1';
+            setTimeout(() => {
+                alertBox.style.opacity = '0';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
