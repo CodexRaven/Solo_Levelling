@@ -32,7 +32,7 @@
             </div>
              <div class="stat-row">
                 <span class="label">JOB:</span>
-                <span class="value">RED TEAMER</span>
+                <span class="value" id="job-val" style="color: #888;">NONE</span>
             </div>
             <div class="stat-row">
                 <span class="label">RANK:</span>
@@ -173,19 +173,19 @@
             "CLEAN YOUR ROOM"
         ];
 
-        // 1. LISTEN TO DATA (With Safe Fallbacks)
+        // 1. LISTEN TO DATA
         onValue(userRef, (snapshot) => {
             const data = snapshot.val() || {};
             const stats = data.stats || {};
             const quests = data.daily_quest || {};
             const emergency = data.emergency || { active: false, task: "" };
 
-            // Stats
+            // Basic Stats
             let level = stats.level || 1;
             let currentXP = stats.xp || 0;
             let maxXP = level * 100;
 
-            // Rank Logic
+            // --- RANK LOGIC ---
             let rank = "E-RANK";
             let rankColor = "#fff";
             if (level >= 10) { rank = "D-RANK"; rankColor = "#00ff00"; }
@@ -194,6 +194,15 @@
             if (level >= 70) { rank = "A-RANK"; rankColor = "#ff0000"; }
             if (level >= 100) { rank = "S-RANK"; rankColor = "#d400ff"; }
 
+            // --- JOB EVOLUTION LOGIC (NEW) ---
+            let jobTitle = "NONE";
+            let jobColor = "#888"; 
+            if (level >= 10) { jobTitle = "GHOST OPERATOR"; jobColor = "#00ff99"; } 
+            if (level >= 25) { jobTitle = "PHANTOM BREAKER"; jobColor = "#00ccff"; } 
+            if (level >= 50) { jobTitle = "VOID WALKER"; jobColor = "#d400ff"; } 
+            if (level >= 75) { jobTitle = "ROOT DESTROYER"; jobColor = "#ff0055"; } 
+            if (level >= 100) { jobTitle = "DISASTER CLASS"; jobColor = "#ff0000"; } 
+
             // Update UI
             document.getElementById('str-val').innerText = stats.strength || 10;
             document.getElementById('int-val').innerText = stats.intellect || 10;
@@ -201,10 +210,17 @@
             document.getElementById('gold-val').innerText = stats.gold || 0;
             document.getElementById('level-val').innerText = level;
 
+            // Update Rank
             const rankElem = document.getElementById('rank-val');
             rankElem.innerText = rank;
             rankElem.style.color = rankColor;
             rankElem.style.textShadow = `0 0 10px ${rankColor}`;
+
+            // Update Job
+            const jobElem = document.getElementById('job-val');
+            jobElem.innerText = jobTitle;
+            jobElem.style.color = jobColor;
+            if(level >= 50) jobElem.style.textShadow = `0 0 10px ${jobColor}`;
 
             document.getElementById('pushups-count').innerText = quests.pushups || 0;
             document.getElementById('study-count').innerText = quests.study || 0;
